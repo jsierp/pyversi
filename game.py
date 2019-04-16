@@ -1,13 +1,16 @@
 import pygame
 import math
 from pygame import gfxdraw
-import human, stupidBot, myBot
+import importlib
+import sys
 
-NUMBER_OF_GAMES = 1000
-firstPlayer = myBot
-secondPlayer = stupidBot
+NUMBER_OF_GAMES = int(sys.argv[3])
+firstName = sys.argv[1]
+secondName = sys.argv[2]
+firstPlayer = importlib.import_module(firstName)
+secondPlayer = importlib.import_module(secondName)
 
-GRAPHICS = False
+GRAPHICS = firstName == 'human' or secondName == 'human'
 
 GSIZE = 8
 BLACK = 1
@@ -26,8 +29,10 @@ if GRAPHICS:
     screen = pygame.display.set_mode((size + sideBarSize, size))
     pygame.font.init()
     myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
-
-    human.init(pygame, cellSize)
+    if firstName == 'human':
+        firstPlayer.init(pygame, cellSize)
+    if secondName == 'human':
+        secondPlayer.init(pygame, cellSize)
 
 def initState():
     global whitePoints, blackPoints, table
@@ -131,10 +136,9 @@ def checkAllPossibleMoves():
 
 
 for i in range(NUMBER_OF_GAMES):
-    print("Playing game %d, first player won: %d, second player won: %d" % (i, firstwins, secondwins), end="\r")
     initState()
     firstPlayerI = (i%2)*2-1
-    player = 1
+    player = BLACK
 
     if GRAPHICS:
         init()
@@ -159,13 +163,14 @@ for i in range(NUMBER_OF_GAMES):
             if len(possibleMoves) == 0:
                 if whitePoints > blackPoints:
                     firstwins += firstPlayerI == WHITE
-                    secondwins += firstPlayerI != WHITE
+                    secondwins += firstPlayerI == BLACK
                 elif blackPoints > whitePoints:
                     firstwins += firstPlayerI == BLACK
-                    secondwins += firstPlayerI != BLACK
+                    secondwins += firstPlayerI == WHITE
                 break
         if GRAPHICS:
             pygame.time.delay(500)
             paint()
             sideBar()
-print("First won: %d games, second won %d games" % (firstwins, secondwins), end="\n")
+    e = "\r" if i!=NUMBER_OF_GAMES-1 else "\n"
+    print("Playing game %d, %s won: %d, %s won: %d" % (i+1, firstName, firstwins, secondName, secondwins), end=e)
