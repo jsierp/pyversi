@@ -148,9 +148,9 @@ for i in range(NUMBER_OF_GAMES):
         checkAllPossibleMoves()
         if len(possibleMoves):
             if player == firstPlayerI:
-                x, y = firstPlayer.returnMove(table, list(possibleMoves.keys()), player)
+                x, y = firstPlayer.returnMove(table.copy(), list(possibleMoves.keys()), player)
             else:
-                x, y = secondPlayer.returnMove(table, list(possibleMoves.keys()), player)
+                x, y = secondPlayer.returnMove(table.copy(), list(possibleMoves.keys()), player)
 
             if move(x, y):
                 countPoints()
