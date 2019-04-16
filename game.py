@@ -1,22 +1,11 @@
-import math
 import pygame
+import math
 from pygame import gfxdraw
+import human
 
-def human(table, possibleMoves, player):
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                x = math.floor(x / cellSize)
-                y = math.floor(y / cellSize)
-                if (x, y) in possibleMoves:
-                    return x, y
+whiteFunction = human.returnMove
+blackFunction = human.returnMove
 
-whiteFunction = human
-blackFunction = human
 NUMBER_OF_GAMES = 1000
 GRAPHICS = True
 GSIZE = 8
@@ -35,6 +24,8 @@ player = 1
 screen = pygame.display.set_mode((size + sideBarSize, size))
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
+
+human.init(pygame, cellSize)
 
 def initState():
     global whitePoints, blackPoints, table
