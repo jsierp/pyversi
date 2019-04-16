@@ -5,19 +5,19 @@ from pygame import gfxdraw
 GSIZE = 8
 BLACK = 1
 WHITE = -1
-
 size = 600
-whitePoints = 0
-blackPoints = 0
 cellSize = size / GSIZE
 rad = cellSize * 0.4
 strokeWidth = 5
 sideBarSize = 400
-player = 1
 
 screen = pygame.display.set_mode((size + sideBarSize, size))
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
+
+whitePoints = 0
+blackPoints = 0
+player = 1
 
 table = [[0 for _ in range(GSIZE)] for _ in range(GSIZE)]
 table[int(GSIZE/2)][int(GSIZE/2)] = 1
@@ -79,6 +79,21 @@ def paint():
 
     pygame.display.flip()
 
+def end():
+    whitePoints = 0
+    blackPoints = 0
+    player = 1
+
+    table = [[0 for _ in range(GSIZE)] for _ in range(GSIZE)]
+    table[int(GSIZE/2)][int(GSIZE/2)] = 1
+    table[int(GSIZE/2 - 1)][int(GSIZE/2 - 1)] = 1
+    table[int(GSIZE/2 - 1)][int(GSIZE/2)] = -1
+    table[int(GSIZE/2)][int(GSIZE/2 - 1)] = -1
+    init()
+    paint()
+    sideBar()
+    p = checkAllPossibleMoves()
+
 def move(x, y):
     global p
     global player
@@ -86,9 +101,17 @@ def move(x, y):
         for cX, cY in p[(x, y)]:
             table[cX][cY] = player
         table[x][y] = player
-        paint()
+
         player *= -1
         p = checkAllPossibleMoves()
+        if len(p) == 0:
+            print("no possible moves!")
+            player *= -1
+            p = checkAllPossibleMoves()
+            if len(p) == 0:
+                print("endgame")
+                end()
+        paint()
         countPoints();
         sideBar()
     else: return False
@@ -120,11 +143,11 @@ def checkAllPossibleMoves():
     return possible
 
 p = checkAllPossibleMoves()
-
 init()
 paint();
-paint();
 sideBar();
+
+
 
 running = True
 while running:
