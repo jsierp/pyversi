@@ -10,7 +10,7 @@ secondName = sys.argv[2]
 firstPlayer = importlib.import_module(firstName)
 secondPlayer = importlib.import_module(secondName)
 
-GRAPHICS = firstName == 'human' or secondName == 'human'
+GRAPHICS = firstName == 'human' or secondName == 'human' or len(sys.argv) > 4
 
 GSIZE = 8
 BLACK = 1
@@ -169,7 +169,7 @@ for i in range(NUMBER_OF_GAMES):
                     secondwins += firstPlayerI == WHITE
                 break
         if GRAPHICS:
-            pygame.time.delay(500)
+            pygame.time.delay(int(sys.argv[4]))
             paint()
             sideBar()
     e = "\r" if i!=NUMBER_OF_GAMES-1 else "\n"
