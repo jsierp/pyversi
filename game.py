@@ -2,28 +2,51 @@ import math
 import pygame
 from pygame import gfxdraw
 
+def human(table, possibleMoves, player):
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                x = math.floor(x / cellSize)
+                y = math.floor(y / cellSize)
+                if (x, y) in possibleMoves:
+                    return x, y
+
+whiteFunction = human
+blackFunction = human
+NUMBER_OF_GAMES = 1000
+GRAPHICS = True
 GSIZE = 8
 BLACK = 1
 WHITE = -1
+bwins = 0
+wwins = 0
 size = 600
 cellSize = size / GSIZE
 rad = cellSize * 0.4
 strokeWidth = 5
 sideBarSize = 400
+possibleMoves = dict()
+player = 1
 
 screen = pygame.display.set_mode((size + sideBarSize, size))
 pygame.font.init()
 myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
 
-whitePoints = 0
-blackPoints = 0
-player = 1
+def initState():
+    global whitePoints, blackPoints, table
+    whitePoints = 0
+    blackPoints = 0
+    player = 1
 
-table = [[0 for _ in range(GSIZE)] for _ in range(GSIZE)]
-table[int(GSIZE/2)][int(GSIZE/2)] = 1
-table[int(GSIZE/2 - 1)][int(GSIZE/2 - 1)] = 1
-table[int(GSIZE/2 - 1)][int(GSIZE/2)] = -1
-table[int(GSIZE/2)][int(GSIZE/2 - 1)] = -1
+    table = [[0 for _ in range(GSIZE)] for _ in range(GSIZE)]
+    table[int(GSIZE/2)][int(GSIZE/2)] = 1
+    table[int(GSIZE/2 - 1)][int(GSIZE/2 - 1)] = 1
+    table[int(GSIZE/2 - 1)][int(GSIZE/2)] = -1
+    table[int(GSIZE/2)][int(GSIZE/2 - 1)] = -1
 
 def paintCell(x, y, color):
     pygame.gfxdraw.filled_circle(screen, int((x + 0.5) * cellSize), int((y + 0.5) * cellSize), int(rad), (0, 0, 0))
@@ -33,6 +56,7 @@ def paintCell(x, y, color):
 
 
 def sideBar():
+    global player
     countPoints()
     pygame.draw.rect(screen, (0, 255, 0), (size, 0, sideBarSize, size));
 
@@ -80,45 +104,24 @@ def paint():
     pygame.display.flip()
 
 def end():
-    whitePoints = 0
-    blackPoints = 0
-    player = 1
-
-    table = [[0 for _ in range(GSIZE)] for _ in range(GSIZE)]
-    table[int(GSIZE/2)][int(GSIZE/2)] = 1
-    table[int(GSIZE/2 - 1)][int(GSIZE/2 - 1)] = 1
-    table[int(GSIZE/2 - 1)][int(GSIZE/2)] = -1
-    table[int(GSIZE/2)][int(GSIZE/2 - 1)] = -1
-    init()
-    paint()
-    sideBar()
-    p = checkAllPossibleMoves()
+    if whitePoints > blackPoints:
+        bwins += 1
+    elif blackPoints > whitePoints:
+        wwins += 1
 
 def move(x, y):
-    global p
+    global possibleMoves
     global player
-    if((x,y) in p):
-        for cX, cY in p[(x, y)]:
+    if((x,y) in possibleMoves):
+        for cX, cY in possibleMoves[(x, y)]:
             table[cX][cY] = player
         table[x][y] = player
-
-        player *= -1
-        p = checkAllPossibleMoves()
-        if len(p) == 0:
-            print("no possible moves!")
-            player *= -1
-            p = checkAllPossibleMoves()
-            if len(p) == 0:
-                print("endgame")
-                end()
-        paint()
-        countPoints();
-        sideBar()
-    else: return False
+        return True
+    return False
 
 def checkAllPossibleMoves():
-    global player
-    possible = dict()
+    global player, possibleMoves
+    possibleMoves = dict()
     for x in range(GSIZE):
         for y in range(GSIZE):
 
@@ -136,27 +139,35 @@ def checkAllPossibleMoves():
                         if(currX >= 0 and currX < GSIZE and currY < GSIZE and currY >= 0 and table[currX][currY] == player):
                             changed = changed + row
 
-
                 if(len(changed) > 0):
-                    possible[(x, y)] = changed
-
-    return possible
-
-p = checkAllPossibleMoves()
-init()
-paint();
-sideBar();
+                    possibleMoves[(x, y)] = changed
 
 
+for _ in range(NUMBER_OF_GAMES):
+    initState()
+    if GRAPHICS:
+        init()
+        paint()
+        sideBar()
+    while True:
+        checkAllPossibleMoves()
+        if len(possibleMoves):
+            if player == WHITE:
+                x, y = whiteFunction(table, possibleMoves, player)
+            else:
+                x, y = blackFunction(table, possibleMoves, player)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            x, y = pygame.mouse.get_pos()
-            x = math.floor(x / cellSize)
-            y = math.floor(y / cellSize)
-            move(x, y)
-            #print(str(x)+" "+str(y));
+            if move(x, y):
+                countPoints()
+                player *= -1
+            else:
+                raise Exception("Nie wiem co zrobic %d" % player)
+        else:
+            player *= -1
+            checkAllPossibleMoves()
+            if len(possibleMoves) == 0:
+                end()
+                break
+        if GRAPHICS:
+            paint()
+            sideBar()
