@@ -1,10 +1,10 @@
 import pygame
 import math
 from pygame import gfxdraw
-import human, stupidBot
+import human, stupidBot, myBot
 
-NUMBER_OF_GAMES = 100
-firstPlayer = stupidBot
+NUMBER_OF_GAMES = 1000
+firstPlayer = myBot
 secondPlayer = stupidBot
 
 GRAPHICS = False
@@ -168,4 +168,4 @@ for i in range(NUMBER_OF_GAMES):
             pygame.time.delay(500)
             paint()
             sideBar()
-print("White won: %d games, black won %d games" % (firstwins, secondwins), end="\n")
+print("First won: %d games, second won %d games" % (firstwins, secondwins), end="\n")
