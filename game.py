@@ -1,13 +1,14 @@
 import pygame
 import math
 from pygame import gfxdraw
-import human
-
-whiteFunction = human.returnMove
-blackFunction = human.returnMove
+import human, stupidBot
 
 NUMBER_OF_GAMES = 1000
-GRAPHICS = True
+blackFunction = stupidBot.returnMove
+whiteFunction = stupidBot.returnMove
+
+GRAPHICS = False
+
 GSIZE = 8
 BLACK = 1
 WHITE = -1
@@ -21,11 +22,12 @@ sideBarSize = 400
 possibleMoves = dict()
 player = 1
 
-screen = pygame.display.set_mode((size + sideBarSize, size))
-pygame.font.init()
-myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
+if GRAPHICS:
+    screen = pygame.display.set_mode((size + sideBarSize, size))
+    pygame.font.init()
+    myfont = pygame.font.SysFont('Comic Sans MS', int(sideBarSize*0.14))
 
-human.init(pygame, cellSize)
+    human.init(pygame, cellSize)
 
 def initState():
     global whitePoints, blackPoints, table
@@ -95,6 +97,7 @@ def paint():
     pygame.display.flip()
 
 def end():
+    global whitePoints, blackPoints, bwins, wwins
     if whitePoints > blackPoints:
         bwins += 1
     elif blackPoints > whitePoints:
@@ -134,7 +137,8 @@ def checkAllPossibleMoves():
                     possibleMoves[(x, y)] = changed
 
 
-for _ in range(NUMBER_OF_GAMES):
+for i in range(NUMBER_OF_GAMES):
+    print("Playing game %d" % i, end="\r")
     initState()
     if GRAPHICS:
         init()
@@ -144,9 +148,9 @@ for _ in range(NUMBER_OF_GAMES):
         checkAllPossibleMoves()
         if len(possibleMoves):
             if player == WHITE:
-                x, y = whiteFunction(table, possibleMoves, player)
+                x, y = whiteFunction(table, list(possibleMoves.keys()), player)
             else:
-                x, y = blackFunction(table, possibleMoves, player)
+                x, y = blackFunction(table, list(possibleMoves.keys()), player)
 
             if move(x, y):
                 countPoints()
@@ -160,5 +164,7 @@ for _ in range(NUMBER_OF_GAMES):
                 end()
                 break
         if GRAPHICS:
+            pygame.time.delay(100)
             paint()
             sideBar()
+print("White won: %d games, black won %d games" % (wwins, bwins))
