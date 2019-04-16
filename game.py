@@ -13,7 +13,7 @@ cellSize = size / GSIZE
 rad = cellSize * 0.4
 strokeWidth = 5
 sideBarSize = 400
-player = 1;
+player = 1
 
 screen = pygame.display.set_mode((size + sideBarSize, size))
 pygame.font.init()
@@ -35,9 +35,7 @@ def paintCell(x, y, color):
 def sideBar():
     countPoints()
     pygame.draw.rect(screen, (0, 255, 0), (size, 0, sideBarSize, size));
-    textsurface = myfont.render('current:', True, (0, 0, 0))
-    screen.blit(textsurface,(size+cellSize, cellSize))
-    
+
     paintCell(9,2, (255,255,255))
     whitesurface = myfont.render(str(whitePoints), True, (0, 0, 0))
     screen.blit(whitesurface,(size + 95, cellSize*3))
@@ -46,10 +44,12 @@ def sideBar():
     blacksurface = myfont.render(str(blackPoints), True, (0, 0, 0))
     screen.blit(blacksurface,(size + 95, cellSize*5))
 
-    if(player == 1): paintCell(15, 0, (255, 255, 255))
-    else: paintCell(10, 0, (0, 0, 0))
+    if player == WHITE:
+        paintCell(10, 0, (255, 255, 255))
+    else:
+        paintCell(10, 0, (0, 0, 0))
     pygame.display.flip()
-    
+
 
 def init():
     pygame.draw.rect(screen, (255, 255, 255), (0, 0, size, size));
@@ -57,23 +57,6 @@ def init():
         for j in range(GSIZE):
             pygame.draw.rect(screen, (0, 0, 0), (i * cellSize, j * cellSize, cellSize, cellSize), strokeWidth)
     pygame.display.flip()
-
-def paint():
-    for i in range(GSIZE):
-        for j in range(GSIZE):
-            if(table[i][j] == 1):
-                paintCell(i, j, (0, 0, 0))
-            elif(table[i][j] == -1):
-                paintCell(i, j, (255, 255, 255))
-
-    pygame.display.flip()
-
-def move(x, y):
-    global player
-    if(table[x][y] == 0):
-        table[x][y] = player
-        player *= -1;
-
 
 def countPoints():
     global whitePoints, blackPoints
@@ -86,11 +69,60 @@ def countPoints():
             elif table[i][j]==WHITE:
                 whitePoints=whitePoints+1
 
+def paint():
+    for i in range(GSIZE):
+        for j in range(GSIZE):
+            if(table[i][j] == 1):
+                paintCell(i, j, (0, 0, 0))
+            elif(table[i][j] == -1):
+                paintCell(i, j, (255, 255, 255))
 
+    pygame.display.flip()
+
+def move(x, y):
+    global p
+    global player
+    if((x,y) in p):
+        for cX, cY in p[(x, y)]:
+            table[cX][cY] = player
+        table[x][y] = player
+        paint()
+        player *= -1
+        p = checkAllPossibleMoves()
+        countPoints();
+        sideBar()
+    else: return False
+
+def checkAllPossibleMoves():
+    global player
+    possible = dict()
+    for x in range(GSIZE):
+        for y in range(GSIZE):
+
+            if(table[x][y] == 0):
+                changed = []
+                for dX in (-1, 0, 1):
+                    for dY in (-1, 0 ,1):
+                        currX = x + dX
+                        currY = y + dY
+                        row = []
+                        while(currX >= 0 and currX < GSIZE and currY < GSIZE and currY >= 0 and table[currX][currY] == player * -1):
+                            row.append((currX, currY))
+                            currX += dX
+                            currY += dY
+                        if(currX >= 0 and currX < GSIZE and currY < GSIZE and currY >= 0 and table[currX][currY] == player):
+                            changed = changed + row
+
+
+                if(len(changed) > 0):
+                    possible[(x, y)] = changed
+
+    return possible
+
+p = checkAllPossibleMoves()
 
 init()
 paint();
-move(2, 2);
 paint();
 sideBar();
 
@@ -103,5 +135,5 @@ while running:
             x, y = pygame.mouse.get_pos()
             x = math.floor(x / cellSize)
             y = math.floor(y / cellSize)
-
-            print(str(x)+" "+str(y));
+            move(x, y)
+            #print(str(x)+" "+str(y));
