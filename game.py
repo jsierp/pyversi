@@ -3,17 +3,17 @@ import math
 from pygame import gfxdraw
 import human, stupidBot
 
-NUMBER_OF_GAMES = 1000
-blackFunction = stupidBot.returnMove
-whiteFunction = stupidBot.returnMove
+NUMBER_OF_GAMES = 100
+firstPlayer = stupidBot
+secondPlayer = stupidBot
 
 GRAPHICS = False
 
 GSIZE = 8
 BLACK = 1
 WHITE = -1
-bwins = 0
-wwins = 0
+firstwins = 0
+secondwins = 0
 size = 600
 cellSize = size / GSIZE
 rad = cellSize * 0.4
@@ -96,13 +96,6 @@ def paint():
 
     pygame.display.flip()
 
-def end():
-    global whitePoints, blackPoints, bwins, wwins
-    if whitePoints > blackPoints:
-        bwins += 1
-    elif blackPoints > whitePoints:
-        wwins += 1
-
 def move(x, y):
     global possibleMoves
     global player
@@ -138,8 +131,11 @@ def checkAllPossibleMoves():
 
 
 for i in range(NUMBER_OF_GAMES):
-    print("Playing game %d" % i, end="\r")
+    print("Playing game %d, first player won: %d, second player won: %d" % (i, firstwins, secondwins), end="\r")
     initState()
+    firstPlayerI = (i%2)*2-1
+    player = 1
+
     if GRAPHICS:
         init()
         paint()
@@ -147,10 +143,10 @@ for i in range(NUMBER_OF_GAMES):
     while True:
         checkAllPossibleMoves()
         if len(possibleMoves):
-            if player == WHITE:
-                x, y = whiteFunction(table, list(possibleMoves.keys()), player)
+            if player == firstPlayerI:
+                x, y = firstPlayer.returnMove(table, list(possibleMoves.keys()), player)
             else:
-                x, y = blackFunction(table, list(possibleMoves.keys()), player)
+                x, y = secondPlayer.returnMove(table, list(possibleMoves.keys()), player)
 
             if move(x, y):
                 countPoints()
@@ -161,10 +157,15 @@ for i in range(NUMBER_OF_GAMES):
             player *= -1
             checkAllPossibleMoves()
             if len(possibleMoves) == 0:
-                end()
+                if whitePoints > blackPoints:
+                    firstwins += firstPlayerI == WHITE
+                    secondwins += firstPlayerI != WHITE
+                elif blackPoints > whitePoints:
+                    firstwins += firstPlayerI == BLACK
+                    secondwins += firstPlayerI != BLACK
                 break
         if GRAPHICS:
-            pygame.time.delay(100)
+            pygame.time.delay(500)
             paint()
             sideBar()
-print("White won: %d games, black won %d games" % (wwins, bwins))
+print("White won: %d games, black won %d games" % (firstwins, secondwins), end="\n")
