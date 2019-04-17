@@ -3,12 +3,17 @@ import math
 from pygame import gfxdraw
 import importlib
 import sys
+from copy import deepcopy
+from time import time
 
+maxTime = 0.01
 NUMBER_OF_GAMES = int(sys.argv[3])
 firstName = sys.argv[1]
 secondName = sys.argv[2]
 firstPlayer = importlib.import_module(firstName)
 secondPlayer = importlib.import_module(secondName)
+firstTime = 0
+secondTime = 0
 
 GRAPHICS = firstName == 'human' or secondName == 'human' or len(sys.argv) > 4
 
@@ -134,6 +139,9 @@ def checkAllPossibleMoves():
                 if(len(changed) > 0):
                     possibleMoves[(x, y)] = changed
 
+def ban(name):
+    print("\nPermban gracza %s\n" % name)
+    exit()
 
 for i in range(NUMBER_OF_GAMES):
     initState()
@@ -147,16 +155,27 @@ for i in range(NUMBER_OF_GAMES):
     while True:
         checkAllPossibleMoves()
         if len(possibleMoves):
+            start = time()
             if player == firstPlayerI:
-                x, y = firstPlayer.returnMove(table.copy(), list(possibleMoves.keys()), player)
+                x, y = firstPlayer.returnMove(deepcopy(table), list(possibleMoves.keys()), player)
+                turnTime = time()-start
+                if turnTime > maxTime:
+                    ban(firstName)
+                else:
+                    firstTime += turnTime
             else:
-                x, y = secondPlayer.returnMove(table.copy(), list(possibleMoves.keys()), player)
+                x, y = secondPlayer.returnMove(deepcopy(table), list(possibleMoves.keys()), player)
+                turnTime = time()-start
+                if turnTime > maxTime:
+                    ban(firstName)
+                else:
+                    secondTime += turnTime
 
             if move(x, y):
                 countPoints()
                 player *= -1
             else:
-                raise Exception("Nie wiem co zrobic %d" % player)
+                name = firstName if player == firstPlayerI else secondName
         else:
             player *= -1
             checkAllPossibleMoves()
@@ -173,4 +192,5 @@ for i in range(NUMBER_OF_GAMES):
             paint()
             sideBar()
     e = "\r" if i!=NUMBER_OF_GAMES-1 else "\n"
-    print("Playing game %d, %s won: %d, %s won: %d" % (i+1, firstName, firstwins, secondName, secondwins), end=e)
+    print("Playing game %d, %s won %d with avg turn time: %.2e, %s won: %d with avg turn time: %.2e" % (
+        i+1, firstName, firstwins, firstTime/(i+1)/30, secondName, secondwins, secondTime/(i+1)/30), end=e)
