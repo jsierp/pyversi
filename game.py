@@ -15,7 +15,7 @@ firstTime = 0
 secondTime = 0
 
 GRAPHICS = firstName == 'human' or secondName == 'human' or len(sys.argv) > 4
-maxTime = 0.02 if not GRAPHICS else 10000
+maxTime = 5 if not GRAPHICS else 10000
 
 GSIZE = 8
 BLACK = 1
